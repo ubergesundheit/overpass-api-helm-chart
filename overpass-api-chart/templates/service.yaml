@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "overpass-api.fullname" . }}
+  labels:
+    {{- include "overpass-api.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.apiService.service.type }}
+  ports:
+    - port: {{ .Values.apiService.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "overpass-api.selectorLabels" . | nindent 4 }}

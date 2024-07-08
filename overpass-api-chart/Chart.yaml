@@ -1,0 +1,19 @@
+apiVersion: v2
+name: overpass-api
+description: A Helm chart for Overpass API
+maintainers:
+- name: Rémi Kalbe
+  email: me@remi.boo
+
+home: https://github.com/RemiKalbe/overpass-api-helm-chart
+sources:
+- https://github.com/RemiKalbe/overpass-api-helm-chart
+keywords:
+- overpass
+- osm
+- api
+
+
+type: application
+version: 0.1.0
+appVersion: "0.7.62"

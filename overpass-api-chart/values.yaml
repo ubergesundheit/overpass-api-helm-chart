@@ -1,0 +1,57 @@
+# Common Settings
+overpassMeta: "yes"
+overpassCompression: "gz"
+
+# Update Job Settings
+updateJob:
+  schedule: "0 */6 * * *"
+  image:
+    pullPolicy: IfNotPresent
+  planetUrl: "https://planet.openstreetmap.org/planet/planet-latest.osm.bz2"
+  diffUrl: "https://planet.openstreetmap.org/replication/minute/"
+  rulesLoad: 1
+  updateSleep: 60
+
+# API Service Settings
+apiService:
+  replicaCount: 3
+  image:
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  fastcgiProcesses: 4
+  rateLimit: 1024
+  time: 1000
+  space: 536870912
+  maxTimeout: 1000
+
+# Persistent Volume Claim
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 100Gi
+  storageClass: ""
+
+# Resource Limits
+resources:
+  limits:
+    cpu: 1
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Ingress Configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # kubernetes.io/ingress.class: nginx
+  # kubernetes.io/tls-acme: "true"
+  hosts:
+  - host: overpass.example.com
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  tls: []
