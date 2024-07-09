@@ -14,6 +14,14 @@ spec:
       labels:
         {{- include "overpass-api.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+      - name: wait-for-db
+        image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"
+        command: ['sh', '-c', 'until test -f /app/db/replicate_id; do echo waiting for database; sleep 10; done;']
+        volumeMounts:
+        - name: db-volume
+          mountPath: /app/db
+          readOnly: true
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"

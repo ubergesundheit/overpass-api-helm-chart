@@ -1,9 +1,10 @@
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ include "overpass-api.fullname" . }}-update
 spec:
   schedule: {{ .Values.updateJob.schedule | quote }}
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:
@@ -21,12 +22,12 @@ spec:
               value: {{ .Values.updateJob.planetUrl | quote }}
             - name: OVERPASS_DIFF_URL
               value: {{ .Values.updateJob.diffUrl | quote }}
+            - name: OVERPASS_UPDATE_FREQUENCY
+              value: {{ .Values.updateJob.updateFrequency | quote }}
             - name: OVERPASS_COMPRESSION
               value: {{ .Values.overpassCompression | quote }}
             - name: OVERPASS_RULES_LOAD
               value: {{ .Values.updateJob.rulesLoad | quote }}
-            - name: OVERPASS_UPDATE_SLEEP
-              value: {{ .Values.updateJob.updateSleep | quote }}
             volumeMounts:
             - name: db-volume
               mountPath: /app/db

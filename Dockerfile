@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
   libexpat1-dev \
   zlib1g-dev \
   osmium-tool \
+  bzip2 \
   fcgiwrap \
   nginx \
   && rm -rf /var/lib/apt/lists/*
@@ -41,7 +42,9 @@ ENV PATH="/app/osm-3s/bin:${PATH}" \
   OVERPASS_DIFF_URL="https://planet.openstreetmap.org/replication/minute/" \
   OVERPASS_COMPRESSION="gz" \
   OVERPASS_RULES_LOAD=1 \
-  OVERPASS_UPDATE_SLEEP=60 \
+  OVERPASS_UPDATE_FREQUENCY="minute" \
+  OVERPASS_DB_DIR="/app/db" \
+  OVERPASS_DIFF_DIR="/app/diffs" \
   OVERPASS_FASTCGI_PROCESSES=4 \
   OVERPASS_RATE_LIMIT=1024 \
   OVERPASS_TIME=1000 \

@@ -1,39 +1,206 @@
-# Common Settings
-overpassMeta: "yes"
-overpassCompression: "gz"
+nameOverride: ""
+fullnameOverride: ""
 
+#
+# Common Settings
+#
+
+overpassMeta: "yes"
+# Controls whether metadata is included in the Overpass database. 
+# Options: 
+#   "yes" (include metadata)
+#   "no" (exclude metadata)
+#   "attic" (include historical metadata)
+# Explanation:
+#   Metadata includes information like the user who last modified an element, the timestamp of the modification, and the changeset ID.
+#   - "yes": Includes current metadata. Useful for applications that need to know when and by whom data was last modified.
+#            Increases database size by about 50% compared to "no".
+#   - "no": Excludes all metadata. Results in the smallest database size. Use this if you only need the current state of OSM data.
+#   - "attic": Includes historical metadata. Allows for time-based queries but dramatically increases database size (can be 5-10 times larger).
+
+overpassCompression: "gz"
+# Specifies the compression method for the Overpass database.
+# Options: 
+#   "no" (no compression)
+#   "gz" (gzip compression)
+#   "lz4" (LZ4 compression)
+# Explanation:
+#   Compression reduces disk space usage but affects read/write performance.
+#   - "no": Fastest read/write performance, but largest disk usage.
+#   - "gz": Good compression ratio, slower than "no" and "lz4". Best for disk space constrained environments.
+#   - "lz4": Fast compression/decompression, less space-saving than "gz". Good balance of performance and space saving.
+
+#
 # Update Job Settings
+#
 updateJob:
   schedule: "0 */6 * * *"
+  # Determines how often your Overpass database is updated with new OSM data.
+  # Default is every 6 hours.
+
   image:
+    repository: remikalbe/overpass-api-kube
     pullPolicy: IfNotPresent
   planetUrl: "https://planet.openstreetmap.org/planet/planet-latest.osm.bz2"
-  diffUrl: "https://planet.openstreetmap.org/replication/minute/"
-  rulesLoad: 1
-  updateSleep: 60
+  # URL to download the initial OSM planet file
+  # Explanation:
+  #   This is the source of the complete OSM dataset used to initialize your Overpass database.
+  #   The official planet file is very large (>50GB compressed) and can take a long time to download.
+  # When to change:
+  #   - If you only need data for a specific region, consider using a regional extract from Geofabrik or other sources.
+  #   - You might change this to a local URL if you're hosting planet files internally.
+  # Default recommendation:
+  #   Use the official planet URL unless you have specific regional needs or internal mirrors.
 
+  diffUrl: "https://planet.openstreetmap.org/replication/minute/"
+  # URL to fetch OSM change files (diffs)
+  # Explanation:
+  #   This setting specifies the source of incremental updates (diffs) used to keep your Overpass database current after the initial import.
+  #   The URL points to a directory containing change files, which are organized by date and time.
+  #   
+  #   Options: (non exhaustive list)
+  #   - Minute diffs: "https://planet.openstreetmap.org/replication/minute/"
+  #   - Hourly diffs: "https://planet.openstreetmap.org/replication/hour/"
+  #   - Daily diffs:  "https://planet.openstreetmap.org/replication/day/"
+  #   
+  #   Important Note:
+  #   The frequency of updates is determined by the 'schedule' setting in the update job, not by the choice of diff URL.
+  #   This setting only affects the granularity of the change files available to the updater.
+  #
+  # When to change:
+  #   - Switch to hourly or daily diffs if you're updating less frequently (e.g., daily or weekly) to reduce the number of files processed during each update.
+  #   - Use minute diffs if you want the option to update very frequently or need the most granular change data available.
+  #   - Change to a regional diff source if you're only maintaining data for a specific area and such a source is available.
+
+  updateFrequency: "minute"
+  # Specifies the granularity of update files (diffs) being used
+  # Options: "minute", "hour", "day"
+  # Explanation:
+  #   This setting informs the updater about the type of diff files that are available and being used.
+  #   It doesn't change or set the diff files; it merely tells the updater what to expect.
+  #
+  #   Key points:
+  #   - This must match the actual granularity of diffs provided by the diffUrl.
+  #   - It doesn't affect how often the update job runs (controlled by 'schedule').
+  #   - It only tells the updater what type of diffs to expect when it does run.
+  #
+  #   For example:
+  #   - If diffUrl is set to minute diffs, this should be "minute".
+  #   - The updater will then know to process minute-by-minute changes, regardless of how often it runs.
+  #
+  #   Correct alignment:
+  #   - "minute" for https://planet.openstreetmap.org/replication/minute/
+  #   - "hour" for https://planet.openstreetmap.org/replication/hour/
+  #   - "day" for https://planet.openstreetmap.org/replication/day/
+
+
+  rulesLoad: 1
+  # Controls the aggressiveness of area generation during updates
+  # Range: 1-100, where higher values mean more aggressive area generation
+  # Explanation:
+  #   This setting affects how the area generator works during the update process. Areas are polygons derived 
+  #   from OSM relations, which are crucial for certain types of queries (e.g., "find all cafes in London").
+  #
+  #   The area generator runs continuously as part of the update process, but it's designed to be 
+  #   interruptible and to yield resources to other parts of the system. The 'rulesLoad' setting 
+  #   controls this behavior:
+  #
+  #   - A value of 1 means the generator does minimal work between yielding control.
+  #   - A value of 100 means the generator does maximal work before yielding.
+  #   - Values in between provide a spectrum of behaviors.
+  #
+  # When to change:
+  #   - Increase if you heavily rely on area-based queries and need areas to be up-to-date quickly after changes.
+  #   - Decrease if area updates are less critical for your use case and you want to prioritize other aspects of the update process.
+  #
+  # Implications:
+  #   - Higher values will update areas more quickly but may use more CPU during updates.
+  #   - Lower values will update areas more slowly but leave more CPU for other tasks during updates.
+  #
+  # Default recommendation:
+  #   Start with 1 and increase only if you notice delays in area data being available for queries and have available CPU capacity.
+
+#
 # API Service Settings
+#
 apiService:
   replicaCount: 3
   image:
+    repository: remikalbe/overpass-api-kube
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
     port: 80
   fastcgiProcesses: 4
-  rateLimit: 1024
-  time: 1000
-  space: 536870912
-  maxTimeout: 1000
+  # Number of FastCGI processes to run for handling API requests
+  # Explanation:
+  #   FastCGI is a protocol for interfacing interactive programs with a web server. In the context of Overpass API,
+  #   it determines how many parallel processes are available to handle incoming API requests.
+  #   - More processes allow handling more concurrent requests but consume more RAM.
+  #   - Fewer processes conserve RAM but may lead to request queuing under high load.
+  # When to change:
+  #   - Increase if you expect high concurrent usage and have available RAM. Each process can consume 1-2 GB of RAM.
+  #   - Decrease if you're running on a machine with limited RAM or expect low concurrent usage.
+  # How to determine the right value:
+  #   - Start with cores * 2 (e.g., 4 for a 2-core machine)
+  #   - Monitor your system. If you see many queued requests and have free RAM, increase gradually.
+  #   - If you're running out of RAM, decrease this value.
+  # Default recommendation:
+  #   4 is a conservative starting point. Adjust based on your hardware and expected load.
 
+  rateLimit: 1024
+  # Maximum number of concurrent requests allowed from a single IP address
+  # Explanation:
+  #   This setting helps prevent abuse of your Overpass API instance by limiting how many requests a single client can make simultaneously.
+  # When to change:
+  #   - Increase if you have trusted power users who need to make many concurrent requests.
+  #   - Decrease if you're seeing abuse or if your server is getting overwhelmed by requests from single IPs.
+  # Default recommendation:
+  #   1024 is quite generous. Consider lowering to 256 or 128 if you're running a public instance.
+
+  time: 1000
+  # Maximum execution time for a single query in seconds
+  # Explanation:
+  #   This setting limits how long a single query can run before it's terminated. It prevents long-running queries from 
+  #   monopolizing server resources and ensures responsiveness for other users.
+  # When to change:
+  #   - Increase if you need to support complex queries that take a long time to execute.
+  #   - Decrease if you want to ensure quicker turnover of server resources.
+  # Default recommendation:
+  #   1000 seconds (about 16.5 minutes) is generous for most use cases. Consider lowering to 600 (10 minutes) 
+  #   unless you have specific needs for very long-running queries.
+
+  space: 536870912
+  # Maximum amount of RAM (in bytes) a single query can use
+  # Explanation:
+  #   This setting limits the memory footprint of individual queries, preventing memory exhaustion from complex or poorly optimized queries.
+  #   The value is in bytes, so 536870912 is 512MB.
+  # When to change:
+  #   - Increase if you need to support very large area queries and have the available RAM.
+  #   - Decrease if you're running on a machine with limited RAM or want to ensure more concurrent query support.
+  # Default recommendation:
+  #   512MB is a good starting point. Adjust based on your specific query needs and available server resources.
+
+  maxTimeout: 1000
+  # Maximum timeout for queries in seconds
+  # Explanation:
+  #   This setting determines the maximum time a client can specify for their query to run. It's similar to the 'time' setting,
+  #   but it allows clients to set their own timeout up to this maximum value.
+  # Default recommendation:
+  #   Keep it equal to the 'time' setting unless you have specific reasons to allow longer client-specified timeouts.
+
+#
 # Persistent Volume Claim
+#
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
   size: 100Gi
   storageClass: ""
 
+#
 # Resource Limits
+#
 resources:
   limits:
     cpu: 1
@@ -42,7 +209,9 @@ resources:
     cpu: 500m
     memory: 1Gi
 
+#
 # Ingress Configuration
+#
 ingress:
   enabled: false
   className: ""
