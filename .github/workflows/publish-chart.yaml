@@ -16,7 +16,7 @@ env:
 
 defaults:
   run:
-    working-directory: ./overpass-api-chart
+    working-directory: overpass-api-chart
 
 jobs:
   update-helm-chart:

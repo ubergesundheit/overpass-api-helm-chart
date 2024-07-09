@@ -24,7 +24,7 @@ jobs:
 
       - name: Check for new Overpass API version
         id: check-version
-        working-directory: ./overpass-api-chart
+        working-directory: overpass-api-chart
         run: |
           LATEST_VERSION=$(curl -s https://dev.overpass-api.de/releases/ | grep -oP 'osm-3s_v\K[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n1)
           CURRENT_VERSION=$(grep 'appVersion:' Chart.yaml | awk '{print $2}' | tr -d '"')
@@ -84,7 +84,7 @@ jobs:
 
       - name: Update Chart.yaml
         if: steps.check-version.outputs.version_changed == 'true' && steps.check-pr.outputs.pr_exists == 'false'
-        working-directory: ./overpass-api-chart
+        working-directory: overpass-api-chart
         run: |
           sed -i 's/appVersion: .*/appVersion: "${{ env.NEW_VERSION }}"/' Chart.yaml
           NEW_CHART_VERSION=$(awk '/version:/ {split($2, a, "."); print a[1]"."a[2]+1".0"}' Chart.yaml)
