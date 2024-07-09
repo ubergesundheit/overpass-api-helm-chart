@@ -92,6 +92,7 @@ jobs:
 
       - name: Commit and push changes
         if: steps.check-version.outputs.version_changed == 'true' && steps.check-pr.outputs.pr_exists == 'false'
+        working-directory: overpass-api-chart
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
