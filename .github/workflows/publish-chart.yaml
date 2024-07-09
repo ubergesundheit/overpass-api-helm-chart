@@ -21,6 +21,8 @@ defaults:
 jobs:
   update-helm-chart:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Install Helm
         uses: azure/setup-helm@v1
