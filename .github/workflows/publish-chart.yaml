@@ -50,9 +50,9 @@ jobs:
           TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}")
           RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}")
           if [ "$TAG_EXISTS" -gt "0" ] && [ "$RELEASE_EXISTS" -gt "0" ]; then
-            echo "::set-output name=tag_exists::true"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=tag_exists::false"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Create Tag
