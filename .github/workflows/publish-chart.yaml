@@ -65,6 +65,7 @@ jobs:
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
             --pages-branch gh-pages \
+            --package-path packaged-charts \
             --packages-with-index \
             --token ${{ secrets.GITHUB_TOKEN }} \
             --index-path . \
