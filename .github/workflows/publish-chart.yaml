@@ -63,7 +63,7 @@ jobs:
           cr upload \
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
-            --package-path packaged-charts/overpass-api-${{ env.NEW_VERSION }}.tgz \
+            --package-path packaged-charts \ # This is the directory, not the archive
             --token ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Helm repository index
