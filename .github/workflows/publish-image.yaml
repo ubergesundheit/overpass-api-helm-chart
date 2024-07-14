@@ -12,6 +12,8 @@ env:
 jobs:
   tag-official-version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     if: github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'overpass-api-update')
     steps:
       - name: Checkout code
@@ -40,3 +42,20 @@ jobs:
           docker tag ${{ env.DOCKER_REPO }}:${{ env.RC_TAG }} ${{ env.DOCKER_REPO }}:latest
           docker push ${{ env.DOCKER_REPO }}:${{ env.NEW_VERSION }}
           docker push ${{ env.DOCKER_REPO }}:latest
+
+      - name: Create Tag
+        run: |
+          git tag image-${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Overpass API ${{ env.NEW_VERSION }}
+          tag_name: image-${{ env.NEW_VERSION }}
+          body: |
+            This release contains the official Overpass API version ${{ env.NEW_VERSION }}.
+
+          draft: false
+          prerelease: false
+          generate_release_notes: true

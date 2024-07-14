@@ -22,6 +22,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Extract version from Chart.yaml
+        run: |
+          VERSION=$(grep 'version:' charts/overpass-api-chart/Chart.yaml | awk '{print $2}' | tr -d '"')
+          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -36,3 +41,21 @@ jobs:
         uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Create Tag
+        run: |
+          git tag chart-${{ env.NEW_VERSION }}
+          git tag ${{ env.NEW_VERSION }}
+          git push origin ${{ env.NEW_VERSION }}
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Overpass API Helm Chart ${{ env.NEW_VERSION }}
+          tag_name: ${{ env.NEW_VERSION }}
+          body: |
+            This release contains the official Overpass API Helm Chart version ${{ env.NEW_VERSION }}.
+
+          draft: false
+          prerelease: false
+          generate_release_notes: true
