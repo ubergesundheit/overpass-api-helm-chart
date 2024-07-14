@@ -24,18 +24,6 @@ jobs:
         with:
           fetch-depth: 0 # important parameter
 
-      - name: Install GitHub CLI
-        run: |
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-
-      - name: Extract version from Chart.yaml
-        run: |
-          VERSION=$(grep 'version:' charts/overpass-api-chart/Chart.yaml | awk '{print $2}' | tr -d '"')
-          echo "NEW_VERSION=$VERSION" >> $GITHUB_ENV
-
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -64,7 +52,10 @@ jobs:
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
             --package-path packaged-charts \
-            --token ${{ secrets.GITHUB_TOKEN }}
+            --packages-with-index \
+            --token ${{ secrets.GITHUB_TOKEN }} \
+            --skip-existing \
+            --push
 
       - name: Update Helm repository index
         env:
@@ -74,46 +65,7 @@ jobs:
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
             --pages-branch gh-pages \
+            --packages-with-index \
             --token ${{ secrets.GITHUB_TOKEN }} \
+            --index-path . \
             --push
-
-      - name: Tag and/or release exist
-        id: check-tag
-        run: |
-          set -o pipefail
-
-          # Check for tag
-          TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}" || echo 0)
-
-          # Check for release
-          RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}" || echo 0)
-
-          echo "TAG_EXISTS: $TAG_EXISTS"
-          echo "RELEASE_EXISTS: $RELEASE_EXISTS"
-
-          if [ "$TAG_EXISTS" -gt "0" ] && [ "$RELEASE_EXISTS" -gt "0" ]; then
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
-            echo "Both tag and release exist"
-          else
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
-            echo "Either tag or release does not exist"
-          fi
-
-      - name: Create Tag
-        if: steps.check-tag.outputs.tag_exists == 'false'
-        run: |
-          git tag chart-${{ env.NEW_VERSION }}
-          git push origin ${{ env.NEW_VERSION }}
-
-      - name: Create Release
-        if: steps.check-tag.outputs.tag_exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Overpass API Helm Chart ${{ env.NEW_VERSION }}
-          tag_name: chart-${{ env.NEW_VERSION }}
-          body: |
-            This release contains the official Overpass API Helm Chart version ${{ env.NEW_VERSION }}.
-
-          draft: false
-          prerelease: false
-          generate_release_notes: true
