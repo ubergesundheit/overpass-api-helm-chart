@@ -54,12 +54,29 @@ jobs:
       - name: Tag and/or release exist
         id: check-tag
         run: |
-          TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}")
-          RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}")
+          set -o pipefail
+
+          # Check for tag
+          TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}" 2>&1) || {
+            echo "Error checking for tag: $TAG_EXISTS"
+            exit 1
+          }
+
+          # Check for release
+          RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}" 2>&1) || {
+            echo "Error checking for release: $RELEASE_EXISTS"
+            exit 1
+          }
+
+          echo "TAG_EXISTS: $TAG_EXISTS"
+          echo "RELEASE_EXISTS: $RELEASE_EXISTS"
+
           if [ "$TAG_EXISTS" -gt "0" ] && [ "$RELEASE_EXISTS" -gt "0" ]; then
             echo "tag_exists=true" >> $GITHUB_OUTPUT
+            echo "Both tag and release exist"
           else
             echo "tag_exists=false" >> $GITHUB_OUTPUT
+            echo "Either tag or release does not exist"
           fi
 
       - name: Create Tag
