@@ -63,7 +63,7 @@ jobs:
           cr upload \
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
-            --package-path packaged-charts \ # This is the directory, not the archive
+            --package-path packaged-charts \
             --token ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Helm repository index
