@@ -57,16 +57,10 @@ jobs:
           set -o pipefail
 
           # Check for tag
-          TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}" 2>&1) || {
-            echo "Error checking for tag: $TAG_EXISTS"
-            exit 1
-          }
+          TAG_EXISTS=$(git tag | grep -c "chart-${{ env.NEW_VERSION }}" || echo 0)
 
           # Check for release
-          RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}" 2>&1) || {
-            echo "Error checking for release: $RELEASE_EXISTS"
-            exit 1
-          }
+          RELEASE_EXISTS=$(gh release list --repo ${{ github.repository }} | grep -c "${{ env.NEW_VERSION }}" || echo 0)
 
           echo "TAG_EXISTS: $TAG_EXISTS"
           echo "RELEASE_EXISTS: $RELEASE_EXISTS"
