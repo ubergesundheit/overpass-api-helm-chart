@@ -46,10 +46,34 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-      - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.6.0
+      - name: Install chart-releaser
+        run: |
+          wget https://github.com/helm/chart-releaser/releases/download/v1.4.0/chart-releaser_1.4.0_linux_amd64.tar.gz
+          tar -xzf chart-releaser_1.4.0_linux_amd64.tar.gz
+          sudo mv cr /usr/local/bin/cr
+
+      - name: Package Helm chart
+        run: |
+          helm package charts/overpass-api-chart
+
+      - name: Create release and upload chart
         env:
-          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cr upload \
+            --owner ${{ github.repository_owner }} \
+            --git-repo ${{ github.event.repository.name }} \
+            --package-path ./overpass-api-chart-${{ env.NEW_VERSION }}.tgz
+
+      - name: Update Helm repository index
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cr index \
+            --owner ${{ github.repository_owner }} \
+            --git-repo ${{ github.event.repository.name }} \
+            --pages-branch gh-pages \
+            --push
 
       - name: Tag and/or release exist
         id: check-tag
@@ -77,7 +101,6 @@ jobs:
         if: steps.check-tag.outputs.tag_exists == 'false'
         run: |
           git tag chart-${{ env.NEW_VERSION }}
-          git tag ${{ env.NEW_VERSION }}
           git push origin ${{ env.NEW_VERSION }}
 
       - name: Create Release
@@ -85,7 +108,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: Overpass API Helm Chart ${{ env.NEW_VERSION }}
-          tag_name: ${{ env.NEW_VERSION }}
+          tag_name: chart-${{ env.NEW_VERSION }}
           body: |
             This release contains the official Overpass API Helm Chart version ${{ env.NEW_VERSION }}.
 
