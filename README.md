@@ -9,17 +9,17 @@ This repository contains a Helm chart for deploying Overpass API on Kubernetes. 
 ## Quick Start
 
 1. Add the Helm repository:
-   ```
+   ```shell
    helm repo add overpass-api https://remikalbe.github.io/overpass-api-helm-chart
    ```
 
 2. Update your local Helm chart repository cache:
-   ```
+   ```shell
    helm repo update
    ```
 
 3. Install the chart:
-   ```
+   ```shell
    helm install my-overpass-api overpass-api/overpass-api
    ```
 
