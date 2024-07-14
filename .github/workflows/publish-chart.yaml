@@ -63,7 +63,8 @@ jobs:
           cr upload \
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
-            --package-path ./overpass-api-chart-${{ env.NEW_VERSION }}.tgz
+            --package-path ./overpass-api-chart-${{ env.NEW_VERSION }}.tgz \
+            --token ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Helm repository index
         env:
@@ -73,6 +74,7 @@ jobs:
             --owner ${{ github.repository_owner }} \
             --git-repo ${{ github.event.repository.name }} \
             --pages-branch gh-pages \
+            --token ${{ secrets.GITHUB_TOKEN }} \
             --push
 
       - name: Tag and/or release exist
