@@ -17,7 +17,17 @@ spec:
       initContainers:
       - name: wait-for-db
         image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"
-        command: ['sh', '-c', 'until test -f /app/db/replicate_id; do echo waiting for database; sleep 10; done;']
+        command: 
+        - /bin/sh
+        - -c
+        - |
+          if [ ! -f /app/db/replicate_id ]; then
+            echo "Database not found. Waiting for initialization job to complete..."
+            while [ ! -f /app/db/replicate_id ]; do
+              sleep 10
+            done
+          fi
+          echo "Database is ready."
         volumeMounts:
         - name: db-volume
           mountPath: /app/db
