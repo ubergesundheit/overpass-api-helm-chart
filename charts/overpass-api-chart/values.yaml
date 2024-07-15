@@ -194,9 +194,11 @@ apiService:
 #
 persistence:
   enabled: true
-  accessMode: ReadWriteOnce
+  accessMode: ReadWriteMany
   size: 100Gi
-  storageClass: ""
+  storageClass: "longhorn"
+  annotations:
+    longhorn.io/shared-filesystem: "true"
 
 #
 # Resource Limits

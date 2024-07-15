@@ -56,13 +56,12 @@ spec:
               containerPort: 80
               protocol: TCP
           volumeMounts:
-          - name: db-volume
+          - name: data
             mountPath: /app/db
             readOnly: true
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
-      - name: db-volume
+      - name: data
         persistentVolumeClaim:
-          claimName: {{ include "overpass-api.fullname" . }}-pvc
-          readOnly: true
+          claimName: {{ include "overpass-api.fullname" . }}-data

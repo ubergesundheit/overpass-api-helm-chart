@@ -29,10 +29,10 @@ spec:
             - name: OVERPASS_RULES_LOAD
               value: {{ .Values.updateJob.rulesLoad | quote }}
             volumeMounts:
-            - name: db-volume
+            - name: data
               mountPath: /app/db
           volumes:
-          - name: db-volume
+          - name: data
             persistentVolumeClaim:
-              claimName: {{ include "overpass-api.fullname" . }}-pvc
+              claimName: {{ include "overpass-api.fullname" . }}-data
           restartPolicy: OnFailure
