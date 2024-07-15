@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "overpass-api.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-install
+    "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-weight": "-5"
     "helm.sh/hook-delete-policy": hook-succeeded
 spec:
@@ -19,9 +19,20 @@ spec:
       - name: overpass-init
         image: "{{ .Values.updateJob.image.repository }}:{{ .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.updateJob.image.pullPolicy }}
+        command:
+        - /bin/sh
+        - -c
+        - |
+          if [ -z "$(ls -A /app/db)" ]; then
+            echo "Volume is empty, initializing..."
+            mkfs.ext4 -F /dev/disk/by-id/scsi-0HC_Volume_*
+            mount /dev/disk/by-id/scsi-0HC_Volume_* /app/db
+            OVERPASS_MODE=update /app/update_overpass.sh
+            umount /app/db
+          else
+            echo "Volume already initialized"
+          fi
         env:
-        - name: OVERPASS_MODE
-          value: "update"
         - name: OVERPASS_META
           value: {{ .Values.overpassMeta | quote }}
         - name: OVERPASS_PLANET_URL
@@ -34,6 +45,8 @@ spec:
           value: {{ .Values.overpassCompression | quote }}
         - name: OVERPASS_RULES_LOAD
           value: {{ .Values.updateJob.rulesLoad | quote }}
+        securityContext:
+          privileged: true
         volumeMounts:
         - name: data
           mountPath: /app/db

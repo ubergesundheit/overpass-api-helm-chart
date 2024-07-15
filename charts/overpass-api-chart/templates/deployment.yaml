@@ -16,7 +16,7 @@ spec:
     spec:
       initContainers:
       - name: wait-for-db
-        image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"
+        image: busybox
         command: 
         - /bin/sh
         - -c
@@ -24,14 +24,13 @@ spec:
           if [ ! -f /app/db/replicate_id ]; then
             echo "Database not found. Waiting for initialization job to complete..."
             while [ ! -f /app/db/replicate_id ]; do
-              sleep 10
+              sleep 60
             done
           fi
           echo "Database is ready."
         volumeMounts:
         - name: data
           mountPath: /app/db
-          readOnly: true
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"
