@@ -14,23 +14,19 @@ spec:
       labels:
         {{- include "overpass-api.selectorLabels" . | nindent 8 }}
     spec:
+      serviceAccountName: {{ include "overpass-api.fullname" . }}-sa
       initContainers:
-      - name: wait-for-db
-        image: busybox
-        command: 
+      - name: wait-for-init-job
+        image: bitnami/kubectl:latest
+        command:
         - /bin/sh
         - -c
         - |
-          if [ ! -f /app/db/replicate_id ]; then
-            echo "Database not found. Waiting for initialization job to complete..."
-            while [ ! -f /app/db/replicate_id ]; do
-              sleep 60
-            done
-          fi
-          echo "Database is ready."
-        volumeMounts:
-        - name: data
-          mountPath: /app/db
+          echo "Waiting for init job to complete..."
+          while ! kubectl get job {{ include "overpass-api.fullname" . }}-init -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep -q True; do
+            sleep 10
+          done
+          echo "Init job completed"
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"
