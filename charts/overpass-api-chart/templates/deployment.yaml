@@ -29,7 +29,7 @@ spec:
           fi
           echo "Database is ready."
         volumeMounts:
-        - name: db-volume
+        - name: data
           mountPath: /app/db
           readOnly: true
       containers:
