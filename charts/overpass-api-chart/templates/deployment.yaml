@@ -16,17 +16,36 @@ spec:
     spec:
       serviceAccountName: {{ include "overpass-api.fullname" . }}-sa
       initContainers:
-      - name: wait-for-init-job
-        image: bitnami/kubectl:latest
+      - name: overpass-init
+        image: "{{ .Values.updateJob.image.repository }}:{{ .Values.updateJob.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.updateJob.image.pullPolicy }}
         command:
         - /bin/sh
         - -c
         - |
-          echo "Waiting for init job to complete..."
-          while ! kubectl get job {{ include "overpass-api.fullname" . }}-init -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}' | grep -q True; do
-            sleep 10
-          done
-          echo "Init job completed"
+          set -ex
+          if [ -z "$(ls -A /app/db)" ]; then
+            echo "Volume is empty, initializing..."
+            OVERPASS_MODE=update /app/update_overpass.sh
+          else
+            echo "Volume already initialized"
+          fi
+        env:
+        - name: OVERPASS_META
+          value: {{ .Values.overpassMeta | quote }}
+        - name: OVERPASS_PLANET_URL
+          value: {{ .Values.updateJob.planetUrl | quote }}
+        - name: OVERPASS_DIFF_URL
+          value: {{ .Values.updateJob.diffUrl | quote }}
+        - name: OVERPASS_UPDATE_FREQUENCY
+          value: {{ .Values.updateJob.updateFrequency | quote }}
+        - name: OVERPASS_COMPRESSION
+          value: {{ .Values.overpassCompression | quote }}
+        - name: OVERPASS_RULES_LOAD
+          value: {{ .Values.updateJob.rulesLoad | quote }}
+        volumeMounts:
+        - name: data
+          mountPath: /app/db
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.apiService.image.repository }}:{{ .Chart.AppVersion }}"

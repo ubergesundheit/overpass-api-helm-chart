@@ -6,8 +6,8 @@ fullnameOverride: ""
 #
 
 overpassMeta: "yes"
-# Controls whether metadata is included in the Overpass database. 
-# Options: 
+# Controls whether metadata is included in the Overpass database.
+# Options:
 #   "yes" (include metadata)
 #   "no" (exclude metadata)
 #   "attic" (include historical metadata)
@@ -20,7 +20,7 @@ overpassMeta: "yes"
 
 overpassCompression: "gz"
 # Specifies the compression method for the Overpass database.
-# Options: 
+# Options:
 #   "no" (no compression)
 #   "gz" (gzip compression)
 #   "lz4" (LZ4 compression)
@@ -57,12 +57,12 @@ updateJob:
   # Explanation:
   #   This setting specifies the source of incremental updates (diffs) used to keep your Overpass database current after the initial import.
   #   The URL points to a directory containing change files, which are organized by date and time.
-  #   
+  #
   #   Options: (non exhaustive list)
   #   - Minute diffs: "https://planet.openstreetmap.org/replication/minute/"
   #   - Hourly diffs: "https://planet.openstreetmap.org/replication/hour/"
   #   - Daily diffs:  "https://planet.openstreetmap.org/replication/day/"
-  #   
+  #
   #   Important Note:
   #   The frequency of updates is determined by the 'schedule' setting in the update job, not by the choice of diff URL.
   #   This setting only affects the granularity of the change files available to the updater.
@@ -98,11 +98,11 @@ updateJob:
   # Controls the aggressiveness of area generation during updates
   # Range: 1-100, where higher values mean more aggressive area generation
   # Explanation:
-  #   This setting affects how the area generator works during the update process. Areas are polygons derived 
+  #   This setting affects how the area generator works during the update process. Areas are polygons derived
   #   from OSM relations, which are crucial for certain types of queries (e.g., "find all cafes in London").
   #
-  #   The area generator runs continuously as part of the update process, but it's designed to be 
-  #   interruptible and to yield resources to other parts of the system. The 'rulesLoad' setting 
+  #   The area generator runs continuously as part of the update process, but it's designed to be
+  #   interruptible and to yield resources to other parts of the system. The 'rulesLoad' setting
   #   controls this behavior:
   #
   #   - A value of 1 means the generator does minimal work between yielding control.
@@ -161,13 +161,13 @@ apiService:
   time: 1000
   # Maximum execution time for a single query in seconds
   # Explanation:
-  #   This setting limits how long a single query can run before it's terminated. It prevents long-running queries from 
+  #   This setting limits how long a single query can run before it's terminated. It prevents long-running queries from
   #   monopolizing server resources and ensures responsiveness for other users.
   # When to change:
   #   - Increase if you need to support complex queries that take a long time to execute.
   #   - Decrease if you want to ensure quicker turnover of server resources.
   # Default recommendation:
-  #   1000 seconds (about 16.5 minutes) is generous for most use cases. Consider lowering to 600 (10 minutes) 
+  #   1000 seconds (about 16.5 minutes) is generous for most use cases. Consider lowering to 600 (10 minutes)
   #   unless you have specific needs for very long-running queries.
 
   space: 536870912

@@ -6,8 +6,6 @@ metadata:
   labels:
     {{- include "overpass-api.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
-    "helm.sh/hook-weight": "-10"
     {{- with .Values.persistence.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
