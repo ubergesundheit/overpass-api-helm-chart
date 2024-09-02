@@ -24,12 +24,7 @@ spec:
         - -c
         - |
           set -ex
-          if [ -z "$(ls -A /app/db)" ]; then
-            echo "Volume is empty, initializing..."
-            OVERPASS_MODE=update /app/update_overpass.sh
-          else
-            echo "Volume already initialized"
-          fi
+          OVERPASS_MODE=update /app/update_overpass.sh
         env:
         - name: OVERPASS_META
           value: {{ .Values.overpassMeta | quote }}
